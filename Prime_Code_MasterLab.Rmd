@@ -38,6 +38,7 @@ STOXX_index <- read_excel("STOXX_600.xlsx",
         "numeric", "numeric", "numeric"))
 
 stock <- dplyr::right_join(europe_inf, STOXX_index, by = "date")
+stock
 ```
 
 
