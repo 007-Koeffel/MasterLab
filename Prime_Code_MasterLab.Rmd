@@ -1,7 +1,7 @@
 ---
 title: "MasterLab"
 author: "Group 2"
-date: "1 3 2022"
+date: "1-3-2022"
 output: html_document
 ---
 
@@ -9,26 +9,41 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r Package Pre-Loading}
+First of all we pre-load every need package in order to use them later for our analysis.
+```{r Environment Creating}
 library(quantmod)
 library(tidyverse)
 library(tidyquant)
 library(timetk)
-library(beepr)
+library(readxl)
+library(dplyr)
+```
+
+Below we are imported our collected inflation data set. We loaded therefore the monthly data set and the yearly data set. Regarding the yearly record, we only used it here for illustration purposes and for providing a short overview for the user. For our analysis we use the monthly stock data base and the monthly inflation. 
+
+```{r Inflation Data Import}
+Inflation_yearly <- read_excel("Inflation_Data_Europe.xls", sheet = "R_Export_yearly", col_types = c("date","numeric", "numeric", "numeric","numeric", "numeric", "numeric","numeric", "numeric", "numeric","numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric","numeric", "numeric", "numeric", "numeric", "numeric", "numeric","numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric","numeric", "numeric"))
+
+Inflation_monthly <- read_excel("Inflation_Data_Europe.xls",sheet = "R_Export_monthly", col_types = c("date", "numeric", "numeric", "numeric","numeric", "numeric", "numeric", "numeric", "numeric", "numeric","numeric", "numeric", "numeric","numeric", "numeric", "numeric", "numeric", "numeric", "numeric","numeric", "numeric", "numeric","numeric", "numeric", "numeric","numeric", "numeric", "numeric"))
+
+Inflation <- Inflation_monthly %>%
+  dplyr::filter(date >= "2003-02-28",
+          date <= "2021-06-30") %>%
+          arrange(date)
+
+europe_inf <- Inflation[c(1,5)] #hard-coded
+
+STOXX_index <- read_excel("STOXX_600.xlsx", 
+    sheet = "R_Export", col_types = c("date", 
+        "numeric", "numeric", "numeric"))
+
+stock <- dplyr::right_join(europe_inf, STOXX_index, by = "date")
 ```
 
 
-```{r Data Scraping}
-min_date <- "2015-01-01"
-max_date <- "2020-01-01"
-raw_data <- quantmod::getSymbols(Symbols = "BRX")
-raw_data <- tq_get(x = "BRX", get = "stock.prices",
-                   from = min_date,
-                   to = max_date) %>%
-  select(date, BRX = adjusted)
-raw_data
 
-```
+
+
 
 
 
