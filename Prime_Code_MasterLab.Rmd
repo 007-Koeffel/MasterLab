@@ -38,9 +38,18 @@ STOXX_index <- read_excel("STOXX_600.xlsx",
         "numeric", "numeric", "numeric"))
 
 stock <- dplyr::right_join(europe_inf, STOXX_index, by = "date")
-stock
 ```
 
+
+```{r Individual Stock data}
+Ticks <- c("TREL-B.ST","RR.L","HSV.L","DRX.L","GFC.PA","0QVM.IL","AKBLF","GETI-B.ST","SSAB-B.ST","URW.AS","0F4I.IL","DIE.BR","0GWS.IL", "BOSS.DE","MOWI.OL","TRN.MI", "AM.PA","DVDCF","NTGY.MC","OSB.L","ORSTED.CO","MT.AS","DLN.L","RHM.DE","CNA.L","OMV.VI","BLND.L","TEL2-B.ST","CAST.ST","ADP.PA","SAFE.L","NESTE.HE","FMS","SCHA.OL","DOCS.L","ADE.OL","PSO","TS","LAND.L","BYG.L","RPYTF","PUB.PA")
+
+
+data <- getSymbols(Symbols = Ticks, auto.assing = FALSE)
+
+stocks <- cbind(`TREL-B.ST`, RR.L, HSV.L, DRX.L, GFC.PA,`0QVM.IL`, AKBLF, `GETI-B.ST`, `SSAB-B.ST`,URW.AS, `0F4I.IL`,DIE.BR, `0GWS.IL`, BOSS.DE, MOWI.OL, TRN.MI, AM.PA, DVDCF,NTGY.MC,OSB.L,ORSTED.CO,MT.AS,DLN.L,RHM.DE,CNA.L,OMV.VI,BLND.L,`TEL2-B.ST`,CAST.ST,ADP.PA,SAFE.L,NESTE.HE,FMS,SCHA.OL,DOCS.L,ADE.OL,PSO,TS,LAND.L,BYG.L,RPYTF,PUB.PA)
+
+```
 
 
 
