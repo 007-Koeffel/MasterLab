@@ -7,6 +7,8 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+#install.packages("slider")
+#install.packages("r2symbols")
 ```
 
 First of all we pre-load every need package in order to use them later for our analysis.
@@ -17,13 +19,68 @@ library(tidyquant)
 library(timetk)
 library(readxl)
 library(dplyr)
+library(tidyr)
+library(slider)
+library(readr)
+library(tibbletime)
+library(zoo)
+library(lmtest)
+library(sandwich)
+library(RcppEigen)
 ```
 
 Below we are imported our collected inflation data set. We loaded therefore the monthly data set and the yearly data set. Regarding the yearly record, we only used it here for illustration purposes and for providing a short overview for the user. For our analysis we use the monthly stock data base and the monthly inflation. 
 
-```{r Raw stock data import}
-raw_stx <- read_excel("Master_raw_data_MasterLab.xlsx", 
-    sheet = "R_Export_Returns_STX600", col_types = c("date","numeric", "numeric", "numeric", 
+```{r Stock_data Import}
+raw_stock <- read_excel("Raw_MasterLab_Data.xlsx", 
+    sheet = "R_Export_Raw", col_types = c("date", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
         "numeric", "numeric", "numeric", 
         "numeric", "numeric", "numeric", 
         "numeric", "numeric", "numeric", 
@@ -223,59 +280,27 @@ raw_stx <- read_excel("Master_raw_data_MasterLab.xlsx",
         "numeric", "numeric", "numeric", 
         "numeric", "numeric", "numeric", 
         "numeric", "numeric", "numeric"))
+security_id <- colnames(raw_stock)
+date <- raw_stock[,1]
+date_id <- ncol(raw_stock)-1
+security_id_02 <- raw_stock[,2:date_id]
+comp <- ncol(security_id_02)-1
+security_id_02 <- security_id_02[ , apply(security_id_02, 2, function(x) !any(is.na(x)))]
+comp_02 <- ncol(security_id_02)-1
+try <- t(security_id_02)
+sec_num <- rownames(try)
+raw_data <- merge(date, sec_num)
+zwischen <- gather(security_id_02,"y", "Returns")
+zwischen_new <- zwischen[,2]
+data_raw <- cbind(raw_data, zwischen_new)
 
-raw_JL <- read_excel("Master_raw_data_MasterLab.xlsx", 
-    sheet = "R_Export_Returns_Joiner&Leavers", 
-    col_types = c("date", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric", 
-        "numeric"))
-
-head(raw_stx)
-head(raw_JL)
+rm(security_id, date, date_id, security_id_02, try, sec_num, raw_data, zwischen, zwischen_new, raw_stock)
+data_raw <- data_raw %>%
+  dplyr::filter(Date >= "2000-01-01",
+                Date <= "2022-02-01") %>%
+  arrange(Date)
+stock_drops <- comp_02-comp
+stock_drops
 ```
 
 _TEXT_
@@ -294,20 +319,168 @@ euro_inf <- Inflation %>%
   select(Date, Euro_area) %>%
   mutate(Euro_area = Euro_area/100)
 
-raw_stock <- right_join(x = raw_stx, y = raw_JL, by = "Date") #merging the dataset together
-cl_stock <- raw_stock[ , apply(raw_stock, 2, function(x) !any(is.na(x)))]
-data_clean <- right_join(x = cl_stock, y = euro_inf , by= "Date")
+cl_stock <- right_join(x = euro_inf, y = data_raw, by = "Date")
+colnames(cl_stock) <- c("Date", "Inflation", "Stock_id", "Returns")
+cl_stock
+
+
+lm(Inflation ~ Stock_id + Returns, data = cl_stock)
+
+lmUNC <- function(cl_stock){ #In order to obtain the uncertainty betas
+  if (mean(abs(cl_stock$Returns))<=-1 | mean(abs(cl_stock$Returns))>=1) {unc <- NA #if a stock is traded on average below 5 or over 1000 US-Dollar we reject them from our data set. Here is also a small divergence within the Bali due to the lacking information from the paper if it would be necessary for filtering on an average base or on single events. We decided for an average base
+  } else {
+    unc <- fastLmPure(cbind(1,cl_stock$Inflation),cl_stock$Returns)$coefficients[2]
+  }
+  return(unc)
+}
+
+test <- cl_stock %>%
+  group_by(Stock_id) %>%
+   mutate(beta_unc = slide_dbl(.x = cur_data(), .f = ~lmUNC(.), .before = 60, .after = -1, .complete = TRUE))
+
+test %>%
+  filter(Stock_id==55021, Date>="2010-01-01") #short check if the beta are calculated right
+
+cl_stock %>%
+  mutate(beta_unc=slide_dbl(.x = cur_data(), .f = ~lmUNC(cl_stock = .x), .before = 60, .after = -1, .complete = TRUE))
+
+data_clean_beta <- cl_stock %>%
+  group_by(Stock_id) %>%
+  mutate(beta_unc = slide_dbl(.x = cur_data(), .f = ~lmUNC(.), .before = 60, .after = -1, .complete = TRUE))
+```
+_TEXT_
+
+data.pf <- data_clean_beta %>%
+  mutate(lmktcap= dplyr::lag(mktcap)) %>% #value-weighted construction regarding the marketcap
+  ungroup() %>%
+  filter(!is.na(beta_unc), !is.na(lmktcap), !is.na(ret_adj_exc)) %>%
+  group_by(date) %>%
+  mutate(beta_unc_dec = ntile(beta_unc, 10 )) %>%
+  ungroup()
+
+pf <- data.pf %>%
+  group_by(date, beta_unc_dec) %>%
+  summarise(ret_ew = mean(ret_adj_exc), ret_vw=weighted.mean(ret_adj_exc, w = lmktcap))
+  
+```{r Inflation base sorting and Portfolio Construction}
+data.pf <- data_clean_beta %>%
+  ungroup() %>%
+  group_by(Date) %>%
+  mutate(beta_unc_dec = ntile(beta_unc, 10)) %>%
+  ungroup()
+
+data.pf %>%
+  group_by(beta_unc_dec) %>%
+  summarise(beta_unc)
+
+pf <- data.pf %>%
+  group_by(Date, beta_unc_dec) %>%
+  summarise(ret_ew = mean(Returns))
+
+ts_pf <- pf %>%
+  group_by(beta_unc_dec) %>%
+  summarise(across(contains("ret"),~mean(.)*100)) #equally returns and value-weighted returns
+
+uncertainty_betas <- data.pf %>%
+  group_by(beta_unc_dec) %>%
+  summarise(across(contains("beta_unc"),~mean(.))) #Uncertainty Portfolios
+```
+
+data_final_beta <- inner_join(data_clean_beta, data.pf, by=c("Date", "Stock_id")) %>%
+  drop_na() %>%
+  ungroup() %>%
+  group_by(Date) %>%
+  arrange(Date, Stock_id) %>%
+  mutate(beta_unc_dec = ntile(beta_unc.y,10)) %>%
+  ungroup() %>%
+  group_by(Date, beta_unc_dec) %>%
+  arrange(Date, beta_unc_dec, Stock_id) %>%
+  mutate(EW=1/n(), VW=mktcap.x/sum(mktcap.x)) %>%
+  mutate(EW_EXRET = EW*ret_adj_exc.x, VW_EXRET=VW*ret_adj_exc.x)
+
+portfolios <- data_final_beta %>% mutate(EW_PORT_EXRET = sum(EW_EXRET), VW_PORT_EXRET=sum(VW_EXRET)) %>% ungroup() %>% group_by(beta_unc_dec,date) %>% mutate(UNC_BETA_AVG = mean(EW_PORT_EXRET), VW_PORT_EXRET_AVG=mean(VW_PORT_EXRET))
+
+
+```{r Portfolio Construction}
+data_final_beta <- inner_join(data_clean_beta, data.pf, by=c("Date", "Stock_id")) %>%
+  drop_na() %>%
+  ungroup() %>%
+  group_by(Date) %>%
+  arrange(Date, Stock_id) %>%
+  mutate(beta_unc_dec = ntile(beta_unc.y, 10)) %>%
+  ungroup() %>%
+  group_by(Date, beta_unc_dec) %>%
+  arrange(Date, beta_unc_dec, Stock_id) %>%
+  mutate(EW = 1/n()) %>%
+  mutate(EW_EXRET = EW*Returns.x)
+
+portfolios <- data_final_beta %>%
+  mutate(EW_PORT_EXRET = sum(EW_EXRET)) %>%
+  ungroup() %>%
+  group_by(beta_unc_dec,Date) %>%
+  mutate(UNC_BETA_AVG = mean(EW_PORT_EXRET))
+```
+
+alpha_5_1_EW <- vector()
+t_value_5_1_EW <- vector()
+for (i in 1:10){
+  regression <- lm(EW_EXRET ~ Mkt.RF.x + SMB.x + HML.x + Mom.x + LIQ.x, #computing the alphas by using the above imported Factors
+                   data = portfolios %>
+                     distinct(date, .keep_all = T) %>%
+                     filter(beta_unc_dec == i))
+  t_statistic <- coeftest(regression, vcov= NeweyWest(regression, verbose = T))
+  alpha_5_1_EW[i] <- regression$coefficients[1]
+  t_value_5_1_EW[i] <- t_statistic[1,3]
+}
+
+alpha_5_1_EW
+t_value_5_1_EW
+
+```{r Equally-Weighted Alpha Computations}
+alpha_EW <- vector()
+t_value_EW <- vector()
+for (i in 1:10){
+  regression <- lm(EW_EXRET ~ Inflation.x + Returns.x,
+                   data = portfolios %>%
+                     distinct(Date, .keep_all = T) %>%
+                     filter(beta_unc_dec == i))
+  t_statistic <- coeftest(regression, vcov= NeweyWest(regression, verbose = T))
+  alpha_EW[i] <- regression$coefficients[1]
+  t_value_EW[i] <- t_statistic[1,3]
+}
+
+alpha_EW
+t_value_EW
 ```
 
 
-```{r Defining the regression function}
-index <- c(cl_stock[1,2:442])
-lm(Euro_area ~ VCTX.L ,data = data_clean)
+```{r}
+ew_overview <- cbind(alpha_EW, t_value_EW)
+
+final_table <- cbind(ts_pf$beta_unc_dec, uncertainty_betas$beta_unc, ts_pf$ret_ew, ew_overview)
+final_table <- as.data.frame(final_table) 
+hl_low_EW_alpha <- t(as.data.frame(ew_overview[1,]-ew_overview[10,]))
+
+hl_lo_EW_RET <- as.data.frame(ts_pf[10,2]-ts_pf[1,2])
+text <- t(c("High-","Low"))
+
+last_row <- cbind(text,hl_lo_EW_RET,hl_low_EW_alpha)
+
+final_table <- final_table %>%
+  rename(DECILE = V1) %>%
+  rename("RET-RF_EW" = V3) %>% 
+  rename("Beta_UNC"= V2)
+
+last_row <- last_row %>%
+  rename(DECILE =1) %>%
+  rename("RET-RF_EW" = ret_ew) %>%
+  rename("Beta_UNC"= 2)
+
+final_table <- rbind(final_table[,c(1,2,4,5)], last_row[,c(1,2,4,5)])
+final_table
+
+
 ```
-
-
-
-
 
 
 

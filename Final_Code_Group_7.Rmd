@@ -121,7 +121,7 @@ lmUNC <- function(data){ #In order to obtain the uncertainty betas
 Within the next section we perform a rolling regression, which uses the first 60 observation for each stock in order to estimate the uncertainty betas. We also rearrange the data set in _data_clean_beta_.
 
 ```{r Rolling regression and beta cleaning}
-lmUNC(data) #sampling the in order to see how it works before attac
+lmUNC(data) #sampling the in order to see how it works before attack
 lm(ret_adj_exc ~ UNC + Mkt.RF+SMB+HML+Mom+LIQ+R_IA+R_ROE,data = data) #performing the rolling regression in order to evaluate the stock exposure to the uncertainty index
  test <- data_clean %>% filter(permno<=10010) %>% group_by(permno) %>%
    mutate(beta_unc=slide_dbl(.x = cur_data(), .f = ~lmUNC(.), .before = 60, .after = -1, .complete = TRUE))#before 60 used as an estimation point
