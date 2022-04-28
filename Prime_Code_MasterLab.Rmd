@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 #install.packages("slider")
 #install.packages("r2symbols")
+#install.packages("xlsx")
 ```
 
 First of all we pre-load every need package in order to use them later for our analysis.
@@ -27,6 +28,7 @@ library(zoo)
 library(lmtest)
 library(sandwich)
 library(RcppEigen)
+library(xlsx)
 ```
 
 Below we are imported our collected inflation data set. We loaded therefore the monthly data set and the yearly data set. Regarding the yearly record, we only used it here for illustration purposes and for providing a short overview for the user. For our analysis we use the monthly stock data base and the monthly inflation. 
@@ -347,6 +349,7 @@ cl_stock %>%
 data_clean_beta <- cl_stock %>%
   group_by(Stock_id) %>%
   mutate(beta_unc = slide_dbl(.x = cur_data(), .f = ~lmUNC(.), .before = 60, .after = -1, .complete = TRUE))
+
 ```
 _TEXT_
 
@@ -419,6 +422,8 @@ portfolios <- data_final_beta %>%
   ungroup() %>%
   group_by(beta_unc_dec,Date) %>%
   mutate(UNC_BETA_AVG = mean(EW_PORT_EXRET))
+
+write_xlsx(data_final_beta, path = "~/ML_in_Finance/Köffel/MasterLab/MasterLab/R_Export_dec.xlsx", col_names = TRUE, format_header = TRUE)
 ```
 
 alpha_5_1_EW <- vector()
@@ -454,7 +459,7 @@ t_value_EW
 ```
 
 
-```{r}
+```{r Overview of the several beta calculations}
 ew_overview <- cbind(alpha_EW, t_value_EW)
 
 final_table <- cbind(ts_pf$beta_unc_dec, uncertainty_betas$beta_unc, ts_pf$ret_ew, ew_overview)
@@ -478,8 +483,6 @@ last_row <- last_row %>%
 
 final_table <- rbind(final_table[,c(1,2,4,5)], last_row[,c(1,2,4,5)])
 final_table
-
-
 ```
 
 
