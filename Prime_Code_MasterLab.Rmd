@@ -7,9 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-#install.packages("slider")
-#install.packages("r2symbols")
-#install.packages("xlsx")
+install.packages("slider")
 ```
 
 First of all we pre-load every need package in order to use them later for our analysis.
@@ -28,14 +26,26 @@ library(zoo)
 library(lmtest)
 library(sandwich)
 library(RcppEigen)
-library(xlsx)
+library(sandwich)
 ```
 
-Below we are imported our collected inflation data set. We loaded therefore the monthly data set and the yearly data set. Regarding the yearly record, we only used it here for illustration purposes and for providing a short overview for the user. For our analysis we use the monthly stock data base and the monthly inflation. 
+First of all we import our data sets, which contains the stock data that we received from Refinitiv. Furthermore, regarding the later analysis we also import the three Fama and French Factors in order to test later on our model.
 
-```{r Stock_data Import}
-raw_stock <- read_excel("Raw_MasterLab_Data.xlsx", 
-    sheet = "R_Export_Raw", col_types = c("date", 
+```{r Data Import}
+FF3 <- read_excel("Fama_Factor_Europe.xlsx", 
+    col_types = c("date", "numeric", "numeric", 
+        "numeric", "numeric"))
+
+FF3_clean <- FF3 %>%
+  filter(., Date > "1999-12-01",
+         Date <= "2022-02-01") #Factor importing, which are later used for investigating alphas in the market
+
+names(FF3_clean)[2] <- 'Mkt.RF'
+
+rm(FF3)
+
+raw_stock <- read_excel("Master_Lab.xlsx", 
+    sheet = "R_Export", col_types = c("date", 
         "numeric", "numeric", "numeric", 
         "numeric", "numeric", "numeric", 
         "numeric", "numeric", "numeric", 
@@ -281,33 +291,1042 @@ raw_stock <- read_excel("Raw_MasterLab_Data.xlsx",
         "numeric", "numeric", "numeric", 
         "numeric", "numeric", "numeric", 
         "numeric", "numeric", "numeric", 
-        "numeric", "numeric", "numeric"))
-security_id <- colnames(raw_stock)
-date <- raw_stock[,1]
-date_id <- ncol(raw_stock)-1
-security_id_02 <- raw_stock[,2:date_id]
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric"))
+
+raw_data <- raw_stock %>%
+  filter(., Date < "2022-04-01")
+ncol(raw_data)
+print("number of stocks before filtering")
+raw_data[raw_data == -5] <- NA #in order to remove the stocks, which do not contain any values at all
+raw_data <- raw_data[ , colSums(is.na(raw_data)) == 0] 
+raw_data[raw_data == -2] <- NA #If and Only if we want to only us full observation data otherwise choose e.g. 0
+raw_data <- raw_data[ , colSums(is.na(raw_data)) == 0] #removes all the colums that do contain missing values
+ncol(raw_data)
+print("number of securities within the database after filtering")
+security_id <- colnames(raw_data)
+date <- raw_data[,1]
+date_id <- ncol(raw_data)-1
+security_id_02 <- raw_data[,2:date_id]
 comp <- ncol(security_id_02)-1
 security_id_02 <- security_id_02[ , apply(security_id_02, 2, function(x) !any(is.na(x)))]
 comp_02 <- ncol(security_id_02)-1
 try <- t(security_id_02)
 sec_num <- rownames(try)
-raw_data <- merge(date, sec_num)
-zwischen <- gather(security_id_02,"y", "Returns")
+raw_data_02 <- merge(date, sec_num)
+zwischen <- gather(security_id_02, "Stock_ID", "Returns")
 zwischen_new <- zwischen[,2]
-data_raw <- cbind(raw_data, zwischen_new)
-
-rm(security_id, date, date_id, security_id_02, try, sec_num, raw_data, zwischen, zwischen_new, raw_stock)
-data_raw <- data_raw %>%
+raw_stock_data <- cbind(raw_data_02, zwischen_new)
+raw_stock_data <- raw_stock_data %>%
   dplyr::filter(Date >= "2000-01-01",
                 Date <= "2022-02-01") %>%
   arrange(Date)
-stock_drops <- comp_02-comp
-stock_drops
-```
 
-_TEXT_
-
-```{r Inflation Data Import and Cleaning}
 Inflation_monthly <- read_excel("Inflation_Data_Europe.xls", sheet = "R_Export_monthly", col_types = c("date","numeric", "numeric", "numeric","numeric", "numeric", "numeric","numeric", "numeric", "numeric","numeric", "numeric", "numeric","numeric", "numeric", "numeric","numeric", "numeric", "numeric", "numeric", "numeric"))
 
 Inflation <- Inflation_monthly %>%
@@ -315,94 +1334,83 @@ Inflation <- Inflation_monthly %>%
           Date <= "2022-02-01") %>%
           arrange(Date)
 
-rm(Inflation_monthly) #environment cleaning
-
-euro_inf <- Inflation %>%
+euro_inf <- Inflation %>% #change what kind of inflation should be observed
   select(Date, Euro_area) %>%
   mutate(Euro_area = Euro_area/100)
 
-cl_stock <- right_join(x = euro_inf, y = data_raw, by = "Date")
+cl_stock <- right_join(x = euro_inf, y = raw_stock_data, by = "Date")
 colnames(cl_stock) <- c("Date", "Inflation", "Stock_id", "Returns")
-cl_stock
+cl_stock <- right_join(x = cl_stock, y = FF3_clean, by = "Date")
+data <- cl_stock %>%
+  mutate(ret_exc = Returns - RF) %>%
+  mutate(ret_exc_Inf_adj = ret_exc - Inflation) %>%
+  mutate(ret_Inf_adj = Returns - Inflation)
 
+rm(date, raw_data, raw_data_02, raw_stock, security_id_02, try, zwischen,zwischen_new, comp, comp_02, date_id, sec_num, security_id, Inflation_monthly, cl_stock, euro_inf, FF3_clean, Inflation, newdata, raw_stock_data)
+gc()
+data
+summary(data$Returns)
+nport <- 10 #determines the number of portfolios
+```
 
-lm(Inflation ~ Stock_id + Returns, data = cl_stock)
+After, the data cleaning we now continue with the beta calculations
 
-lmUNC <- function(cl_stock){ #In order to obtain the uncertainty betas
-  if (mean(abs(cl_stock$Returns))<=-1 | mean(abs(cl_stock$Returns))>=1) {unc <- NA #if a stock is traded on average below 5 or over 1000 US-Dollar we reject them from our data set. Here is also a small divergence within the Bali due to the lacking information from the paper if it would be necessary for filtering on an average base or on single events. We decided for an average base
+```{r Defining the regression}
+lmUNC <- function(data){ #In order to obtain the uncertainty betas
+  if (mean(abs(data$Returns))<=-1 | mean(abs(data$Returns))>=100) {unc <- NA #in the case of extrem outlieres if a stock would have performed more than 100000% within a month
+  } else if (sum(is.na(data$ret_exc))>24) {unc<-NA
   } else {
-    unc <- fastLmPure(cbind(1,cl_stock$Inflation),cl_stock$Returns)$coefficients[2]
+    unc <- fastLmPure(cbind(1,data$Inflation,data$Mkt.RF,data$SMB,data$HML),data$ret_exc)$coefficients[2]
   }
   return(unc)
 }
-
-test <- cl_stock %>%
-  group_by(Stock_id) %>%
-   mutate(beta_unc = slide_dbl(.x = cur_data(), .f = ~lmUNC(.), .before = 60, .after = -1, .complete = TRUE))
-
-test %>%
-  filter(Stock_id==55021, Date>="2010-01-01") #short check if the beta are calculated right
-
-cl_stock %>%
-  mutate(beta_unc=slide_dbl(.x = cur_data(), .f = ~lmUNC(cl_stock = .x), .before = 60, .after = -1, .complete = TRUE))
-
-data_clean_beta <- cl_stock %>%
-  group_by(Stock_id) %>%
-  mutate(beta_unc = slide_dbl(.x = cur_data(), .f = ~lmUNC(.), .before = 60, .after = -1, .complete = TRUE))
-
 ```
-_TEXT_
 
-data.pf <- data_clean_beta %>%
-  mutate(lmktcap= dplyr::lag(mktcap)) %>% #value-weighted construction regarding the marketcap
-  ungroup() %>%
-  filter(!is.na(beta_unc), !is.na(lmktcap), !is.na(ret_adj_exc)) %>%
-  group_by(date) %>%
-  mutate(beta_unc_dec = ntile(beta_unc, 10 )) %>%
-  ungroup()
+Within the next section we perform a rolling regression, which uses the first 60 observation for each stock in order to estimate the uncertainty betas. We also rearrange the data set in _data_clean_beta_.
 
-pf <- data.pf %>%
-  group_by(date, beta_unc_dec) %>%
-  summarise(ret_ew = mean(ret_adj_exc), ret_vw=weighted.mean(ret_adj_exc, w = lmktcap))
-  
-```{r Inflation base sorting and Portfolio Construction}
+```{r Rolling regression and beta calculations}
+lmUNC(data) #sampling the in order to see how it works before attack
+lm(Returns ~ Inflation + Mkt.RF + SMB + HML, data = data) #performing the rolling regression in order to evaluate the stock exposure to inflation
+
+data %>%
+  mutate(Infl_beta = slide_dbl(.x = cur_data(), .f = ~lmUNC(data=.x), .before = 242, .after = 0, .complete = TRUE))
+
+#Performing a rolling regression approach of X year training period
+data_clean_beta <- data %>%
+  group_by(Stock_id) %>%
+  mutate(Infl_beta = slide_dbl(.x = cur_data(), .f = ~lmUNC(.), .before = 242, .after = 0, .complete = TRUE))
+```
+Below we split the betas into deciles in order to form _nport portfolios_. These portfolios are formed by sorting the stock according to their uncertainty betas. Therefore, we obtain ten different portfolios. Furthermore we calculate the Equal-weighted.
+
+```{r Uncertainty Beta and Portfolio Construction}
+#Data set which includes the beta portfolios and individual betas
 data.pf <- data_clean_beta %>%
-  ungroup() %>%
+  filter(!is.na(Infl_beta), !is.na(Returns)) %>% #it excludes the training period because there are NA within it
   group_by(Date) %>%
-  mutate(beta_unc_dec = ntile(beta_unc, 10)) %>%
+  mutate(Infl_beta_port = ntile(Infl_beta, nport)) %>% #creates n-tile portfolios based on the whole basis
   ungroup()
 
-data.pf %>%
-  group_by(beta_unc_dec) %>%
-  summarise(beta_unc)
+#Provides an overview of the certain Infl_betas within the dataset
+data.pf %>% 
+  group_by(Infl_beta_port) %>%
+  summarise(Infl_beta)
 
+#Overview of Beta-Portfolios with their returns
 pf <- data.pf %>%
-  group_by(Date, beta_unc_dec) %>%
-  summarise(ret_ew = mean(Returns))
+  group_by(Date, Infl_beta_port) %>%
+  summarise(ret_ew = mean(ret_exc)) #calculating the equally-weighted return of those portfolios
 
+#Overview of the Portfolios and their equally-weighted return
 ts_pf <- pf %>%
-  group_by(beta_unc_dec) %>%
-  summarise(across(contains("ret"),~mean(.)*100)) #equally returns and value-weighted returns
+  group_by(Infl_beta_port) %>%
+  summarise(across(contains("ret"),~mean(.)*100)) #average returns of the equally-weighted approach
 
-uncertainty_betas <- data.pf %>%
-  group_by(beta_unc_dec) %>%
-  summarise(across(contains("beta_unc"),~mean(.))) #Uncertainty Portfolios
+#Overview of the individual portfolio according to their inflation betas
+Inflation_betas <- data.pf %>%
+  group_by(Infl_beta_port) %>%
+  summarise(across(contains("Infl_beta"),~mean(.))) #Inflation Portfolios
 ```
-
-data_final_beta <- inner_join(data_clean_beta, data.pf, by=c("Date", "Stock_id")) %>%
-  drop_na() %>%
-  ungroup() %>%
-  group_by(Date) %>%
-  arrange(Date, Stock_id) %>%
-  mutate(beta_unc_dec = ntile(beta_unc.y,10)) %>%
-  ungroup() %>%
-  group_by(Date, beta_unc_dec) %>%
-  arrange(Date, beta_unc_dec, Stock_id) %>%
-  mutate(EW=1/n(), VW=mktcap.x/sum(mktcap.x)) %>%
-  mutate(EW_EXRET = EW*ret_adj_exc.x, VW_EXRET=VW*ret_adj_exc.x)
-
-portfolios <- data_final_beta %>% mutate(EW_PORT_EXRET = sum(EW_EXRET), VW_PORT_EXRET=sum(VW_EXRET)) %>% ungroup() %>% group_by(beta_unc_dec,date) %>% mutate(UNC_BETA_AVG = mean(EW_PORT_EXRET), VW_PORT_EXRET_AVG=mean(VW_PORT_EXRET))
-
+The next chunk showcase the data preparation for the later followed alpha calculations. Therefore we filter the data set according to their factors.
 
 ```{r Portfolio Construction}
 data_final_beta <- inner_join(data_clean_beta, data.pf, by=c("Date", "Stock_id")) %>%
@@ -410,80 +1418,189 @@ data_final_beta <- inner_join(data_clean_beta, data.pf, by=c("Date", "Stock_id")
   ungroup() %>%
   group_by(Date) %>%
   arrange(Date, Stock_id) %>%
-  mutate(beta_unc_dec = ntile(beta_unc.y, 10)) %>%
+  mutate(Infl_beta_port = ntile(Infl_beta.y, nport)) %>%
   ungroup() %>%
-  group_by(Date, beta_unc_dec) %>%
-  arrange(Date, beta_unc_dec, Stock_id) %>%
-  mutate(EW = 1/n()) %>%
-  mutate(EW_EXRET = EW*Returns.x)
+  group_by(Date, Infl_beta_port) %>%
+  arrange(Date, Infl_beta_port, Stock_id) %>%
+  mutate(EW=1/n()) %>% 
+  mutate(EW_EXRET = EW*ret_exc.x) #Weights multiplied by its excess rate
+
 
 portfolios <- data_final_beta %>%
   mutate(EW_PORT_EXRET = sum(EW_EXRET)) %>%
-  ungroup() %>%
-  group_by(beta_unc_dec,Date) %>%
-  mutate(UNC_BETA_AVG = mean(EW_PORT_EXRET))
-
-write_xlsx(data_final_beta, path = "~/ML_in_Finance/Köffel/MasterLab/MasterLab/R_Export_dec.xlsx", col_names = TRUE, format_header = TRUE)
+  ungroup() %>% 
+  group_by(Infl_beta_port, Date) %>%
+  mutate(Infl_beta_average = mean(EW_PORT_EXRET))
 ```
 
+The next step is to compute the different alphas for the _equally weighted_ portfolios. Furthermore, we also examined t-tests in order to test for the significance niveau.
+In the following sections we calculate the alphas for the equally-weighted portfolios.
+
+```{r Equally-Weighted Alpha Computations}
 alpha_5_1_EW <- vector()
 t_value_5_1_EW <- vector()
-for (i in 1:10){
-  regression <- lm(EW_EXRET ~ Mkt.RF.x + SMB.x + HML.x + Mom.x + LIQ.x, #computing the alphas by using the above imported Factors
-                   data = portfolios %>
-                     distinct(date, .keep_all = T) %>%
-                     filter(beta_unc_dec == i))
+for (i in 1:nport){
+  regression <- lm(EW_EXRET ~ Mkt.RF.x + SMB.x + HML.x, #computing the alphas by using the above imported Factors
+                   data = portfolios %>%
+                     distinct(Date, .keep_all = T) %>%
+                     filter(Infl_beta_port == i))
   t_statistic <- coeftest(regression, vcov= NeweyWest(regression, verbose = T))
   alpha_5_1_EW[i] <- regression$coefficients[1]
   t_value_5_1_EW[i] <- t_statistic[1,3]
 }
-
-alpha_5_1_EW
-t_value_5_1_EW
-
-```{r Equally-Weighted Alpha Computations}
-alpha_EW <- vector()
-t_value_EW <- vector()
-for (i in 1:10){
-  regression <- lm(EW_EXRET ~ Inflation.x + Returns.x,
-                   data = portfolios %>%
-                     distinct(Date, .keep_all = T) %>%
-                     filter(beta_unc_dec == i))
-  t_statistic <- coeftest(regression, vcov= NeweyWest(regression, verbose = T))
-  alpha_EW[i] <- regression$coefficients[1]
-  t_value_EW[i] <- t_statistic[1,3]
-}
-
-alpha_EW
-t_value_EW
 ```
 
+Final steps in order to bring everything together in order to present our finiding in the _Final_Table_.
 
-```{r Overview of the several beta calculations}
-ew_overview <- cbind(alpha_EW, t_value_EW)
-
-final_table <- cbind(ts_pf$beta_unc_dec, uncertainty_betas$beta_unc, ts_pf$ret_ew, ew_overview)
-final_table <- as.data.frame(final_table) 
-hl_low_EW_alpha <- t(as.data.frame(ew_overview[1,]-ew_overview[10,]))
-
-hl_lo_EW_RET <- as.data.frame(ts_pf[10,2]-ts_pf[1,2])
+```{r}
+ew_overview <- cbind(alpha_5_1_EW,t_value_5_1_EW)
+final_table <- cbind(ts_pf$Infl_beta_port, Inflation_betas$Infl_beta, ts_pf$ret_ew, ew_overview)
+final_table <- as.data.frame(final_table)
+hl_low_EW_alpha <- t(as.data.frame(ew_overview[1,]-ew_overview[nport,])) #needs to be adapt according to the portfolio number
+hl_lo_EW_RET <- as.data.frame(ts_pf[nport,2]-ts_pf[1,2])
 text <- t(c("High-","Low"))
-
 last_row <- cbind(text,hl_lo_EW_RET,hl_low_EW_alpha)
 
 final_table <- final_table %>%
-  rename(DECILE = V1) %>%
-  rename("RET-RF_EW" = V3) %>% 
-  rename("Beta_UNC"= V2)
+  rename(nPort = V1) %>%
+  rename("RET-RF_EW" = V3) %>%
+  rename("Infl_Beta"= V2)
 
 last_row <- last_row %>%
-  rename(DECILE =1) %>%
+  rename(nPort = 1) %>%
   rename("RET-RF_EW" = ret_ew) %>%
-  rename("Beta_UNC"= 2)
+  rename("Infl_Beta"= 2)
 
-final_table <- rbind(final_table[,c(1,2,4,5)], last_row[,c(1,2,4,5)])
+final_table <- rbind(final_table, last_row)
 final_table
 ```
+
+The last step is to export our findings in order to put them into the right fashion regarding the final presentation.
+
+
+_Equally Market Portfolio_
+
+```{r, message = FALSE, warning = FALSE}
+sep_oos <- as.Date("2010-01-01")                            # Starting point for backtest
+ticks <- data.pf$Stock_id %>%                               # List of all asset ids
+    as.factor() %>%
+    levels()
+features <- colnames(data.pf[2:13])
+features_short <- features
+N <- length(ticks)                                          # Max number of assets
+returns <- data.pf %>%
+  select(Stock_id,Date,Returns) #the returns are calculated
+
+t_oos <- returns$Date[returns$Date > sep_oos] %>%           # Out-of-sample dates 
+    unique() %>%                                            # Remove duplicates
+    as.Date(origin = "1970-01-01")                          # Transform in date format
+Tt <- length(t_oos)                                         # Nb of dates, avoid T = TRUE
+nb_port <- 1                                                # Nb of portfolios/strategies
+portf_weights <- array(0, dim = c(Tt, nb_port, N))          # Initialize portfolio weights, three dimensional object
+portf_returns <- matrix(0, nrow = Tt, ncol = nb_port)       # Initialize portfolio returns 
+
+portf_compo <- function(train_data, test_data, features, j){ 
+    if(j == 1){                                 # This is the benchmark
+        N <- test_data$Stock_id %>%             # Test data dictates allocation
+            factor() %>%
+          nlevels()
+        w <- 1/N                                # EW portfolio
+        w$weights <- rep(w,N)
+        w$names <- unique(test_data$Stock_id)   # Asset names
+        return(w)
+    }
+}
+
+m_offset <- 0                                          # Offset in months for buffer period
+train_size <- 5                                         # Size of training set in years
+for(t in 1:(length(t_oos)-1)){                          # Stop before last date: no fwd ret.!
+    if(t%%12==0){print(t_oos[t])}                       # Just checking the date status
+    train_data <- data.pf %>% filter(Date < t_oos[t] - m_offset * 30,   # Roll window w. buffer
+                                    Date > t_oos[t] - m_offset * 30 - 365 * train_size)    
+    test_data <- data.pf %>% filter(Date == t_oos[t])   # Test sample  
+    realized_returns <- test_data %>%                   # Computing returns via:
+        dplyr::select(Returns)                          # 1M holding period!
+    for(j in 1:nb_port){    
+        temp_weights <- portf_compo(train_data, test_data, features_short, j) # Weights
+        ind <- match(temp_weights$names, ticks) %>%
+          na.omit()           # Index: test vs all
+        portf_weights[t,j,ind] <- temp_weights$weights                  # Allocate weights 
+        portf_returns[t,j] <- sum(temp_weights$weights * realized_returns) # Compute returns
+    }
+}
+
+turnover <- function(weights, asset_returns, t_oos){ 
+    turn <- 0
+    for(t in 2:length(t_oos)){
+        realised_returns <- returns %>% filter(Date == t_oos[t]) %>% dplyr::select(-Date)
+        prior_weights <- weights[t-1,] * (1 + realised_returns) # Before rebalancing
+        turn <- turn + apply(abs(weights[t,] - prior_weights/sum(prior_weights)),1,sum)
+    }
+    return(turn/(length(t_oos)-1))
+}
+
+perf_met <- function(portf_returns, weights, asset_returns, t_oos){ 
+    avg_ret <- mean(portf_returns, na.rm = T)                     # Arithmetic mean 
+    vol <- sd(portf_returns, na.rm = T)                           # Volatility
+    Sharpe_ratio <- avg_ret / vol                                 # Sharpe ratio
+    VaR_5 <- quantile(portf_returns, 0.05)                        # Value-at-risk
+    turn <- 0                                                     # Initialisation of turnover
+    for(t in 2:dim(weights)[1]){
+        realized_returns <- asset_returns %>% filter(Date == t_oos[t]) %>% dplyr::select(-Date)
+        prior_weights <- weights[t-1,] * (1 + realized_returns)
+        turn <- turn + apply(abs(weights[t,] - prior_weights/sum(prior_weights)),1,sum)
+    }
+    turn <- turn/(length(t_oos)-1)                                # Average over time
+    met <- data.frame(avg_ret, vol, Sharpe_ratio, VaR_5, turn)    # Aggregation of all of this
+    rownames(met) <- "metrics"
+    return(met)
+}
+
+perf_met_multi <- function(portf_returns, weights, asset_returns, t_oos, strat_name){
+    J <- dim(weights)[2]              # Number of strategies 
+    met <- c()                        # Initialization of metrics
+    for(j in 1:J){                    # One very ugly loop
+        temp_met <- perf_met(portf_returns[, j], weights[, j, ], asset_returns, t_oos)
+        met <- rbind(met, temp_met)
+    }
+    row.names(met) <- strat_name      # Stores the name of the strat
+    return(met)
+}
+
+asset_returns <- data.pf %>%                          # Compute return matrix: start from data
+    dplyr::select(Date, Stock_id, Returns) %>%        # Keep 3 attributes 
+    pivot_wider(names_from = Stock_id, values_from = Returns)           # Shape in matrix format
+asset_returns[is.na(asset_returns)] <- 0              # Zero returns for missing points
+
+met <- perf_met_multi(portf_returns = portf_returns,  # Computes performance metrics
+                      weights = portf_weights, 
+                      asset_returns = asset_returns,
+                      t_oos = t_oos,
+                      strat_name = c("EW"))
+met 
+```
+
+
+
+
+
+
+```{r Exporting in an excel for data presentation}
+library(writexl)
+write_xlsx(data_final_beta, path = "~/ML_in_Finance/Köffel/MasterLab/MasterLab/Export.xlsx", col_names = TRUE, format_header = TRUE)
+write_xlsx(final_table, path = "~/ML_in_Finance/Köffel/MasterLab/MasterLab/Export_Final_table.xlsx", col_names = TRUE, format_header = TRUE)
+gc()
+```
+
+Lastly, the environment get cleaned in order to only perserve the final_tabel do not execute if you want to safe all the commputations
+```{r Final Clean-Up}
+rm(data, data_clean_beta, data_final_beta, data.pf, ew_overview, hl_lo_EW_RET, hl_low_EW_alpha, Inflation_betas, last_row, pf, portfolios, regression, text, ts_pf, uncertainty_betas, i, alpha_5_1_EW, t_statistic, t_value_5_1_EW,lmUNC)
+```
+
+
+
+
+
 
 
 
